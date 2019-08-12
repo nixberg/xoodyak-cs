@@ -85,9 +85,8 @@ namespace Xoodyak
         private void AbsorbAny(Stream input, long count, long rate, Flag downFlag)
         {
             var block = new byte[rate];
-            var isFirstBlock = true;
 
-            while (true)
+            do
             {
                 var blockSize = Math.Min(count, rate);
                 var bytesRead = input.Read(block, 0, (int)blockSize);
@@ -95,11 +94,6 @@ namespace Xoodyak
                 {
                     throw new ArgumentException("Invalid count", "count");
                 }
-                if (bytesRead == 0 && !isFirstBlock)
-                {
-                    break;
-                }
-                isFirstBlock = false;
 
                 if (phase != Phase.Up)
                 {
@@ -109,17 +103,17 @@ namespace Xoodyak
                 downFlag = Flag.Zero;
 
                 count -= bytesRead;
-            }
+
+            } while (count > 0);
         }
 
         private void Crypt(Stream input, Stream output, long count, bool decrypt)
         {
             var inputBlock = new byte[Rates.Output];
             var outputBlock = new byte[Rates.Output];
-            var isFirstBlock = true;
             var flag = Flag.Crypt;
 
-            while (true)
+            do
             {
                 var blockSize = Math.Min(count, Rates.Output);
                 var bytesRead = input.Read(inputBlock, 0, (int)blockSize);
@@ -127,11 +121,6 @@ namespace Xoodyak
                 {
                     throw new ArgumentException("Invalid count", "count");
                 }
-                if (bytesRead == 0 && !isFirstBlock)
-                {
-                    break;
-                }
-                isFirstBlock = false;
 
                 Up(null, 0, flag);
                 flag = Flag.Zero;
@@ -153,7 +142,8 @@ namespace Xoodyak
                 output.Write(outputBlock, 0, bytesRead);
 
                 count -= bytesRead;
-            }
+
+            } while (count > 0);
         }
 
         private void SqueezeAny(Stream output, long count, Flag upFlag)
