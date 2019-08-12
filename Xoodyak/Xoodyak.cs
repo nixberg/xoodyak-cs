@@ -103,7 +103,7 @@ namespace Xoodyak
 
                 if (phase != Phase.Up)
                 {
-                    Up(Flag.Zero);
+                    Up(null, 0, Flag.Zero);
                 }
                 Down(block, bytesRead, downFlag);
                 downFlag = Flag.Zero;
@@ -133,7 +133,7 @@ namespace Xoodyak
                 }
                 isFirstBlock = false;
 
-                Up(flag);
+                Up(null, 0, flag);
                 flag = Flag.Zero;
 
                 for (int i = 0; i < bytesRead; i++)
@@ -191,7 +191,7 @@ namespace Xoodyak
             }
         }
 
-        private void Up(Flag flag)
+        private void Up(Stream output, long count, Flag flag)
         {
             phase = Phase.Up;
             if (mode != Mode.Hash)
@@ -199,11 +199,6 @@ namespace Xoodyak
                 xoodoo.XOR(47, (byte)flag);
             }
             xoodoo.Permute();
-        }
-
-        private void Up(Stream output, long count, Flag flag)
-        {
-            Up(flag);
             for (long i = 0; i < count; i++)
             {
                 output.WriteByte(xoodoo[i]);
