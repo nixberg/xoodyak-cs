@@ -5,7 +5,7 @@ namespace Xoodyak
 {
     class Xoodoo
     {
-        internal uint[] state = new uint[12];
+        internal byte[] bytes = new byte[48];
 
         private static readonly uint[] RoundConstants = {
             0x058, 0x038, 0x3c0, 0x0d0,
@@ -17,30 +17,11 @@ namespace Xoodyak
         {
             get
             {
-#if BIGENDIAN
-                index += 3 - 2 * (index % 4);
-#endif
-                unsafe
-                {
-                    fixed (uint* pointer = state)
-                    {
-                        return ((byte*)pointer)[index];
-                    }
-                }
+                return bytes[index];
             }
-        }
-
-        internal void XOR(long index, byte value)
-        {
-#if BIGENDIAN
-                index += 3 - 2 * (index % 4);
-#endif
-            unsafe
+            set
             {
-                fixed (uint* pointer = state)
-                {
-                    ((byte*)pointer)[index] ^= value;
-                }
+                bytes[index] = value;
             }
         }
 
@@ -51,7 +32,7 @@ namespace Xoodyak
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        void Swap(int i, int j)
+        void Swap(uint[] state, uint i, uint j)
         {
             uint temp = state[i];
             state[i] = state[j];
@@ -60,6 +41,19 @@ namespace Xoodyak
 
         internal void Permute()
         {
+            var state = new uint[12];
+            for (int i = 0, j = 0; i < 12; i++)
+            {
+                state[i] |= ((uint)(bytes[j]) << 0);
+                j++;
+                state[i] |= ((uint)(bytes[j]) << 8);
+                j++;
+                state[i] |= ((uint)(bytes[j]) << 16);
+                j++;
+                state[i] |= ((uint)(bytes[j]) << 24);
+                j++;
+            }
+
             foreach (uint roundConstant in RoundConstants)
             {
                 var e = new uint[4];
@@ -75,9 +69,9 @@ namespace Xoodyak
                     state[i] ^= e[(i - 1) & 3];
                 }
 
-                Swap(7, 4);
-                Swap(7, 5);
-                Swap(7, 6);
+                Swap(state, 7, 4);
+                Swap(state, 7, 5);
+                Swap(state, 7, 6);
                 state[0] ^= roundConstant;
 
                 for (int i = 0; i < 4; i++)
@@ -91,8 +85,20 @@ namespace Xoodyak
                     state[i] ^= c & ~b;
                 }
 
-                Swap(8, 10);
-                Swap(9, 11);
+                Swap(state, 8, 10);
+                Swap(state, 9, 11);
+            }
+
+            for (int i = 0, j = 0; i < 12; i++)
+            {
+                bytes[j] = (byte)(state[i] >> 0);
+                j++;
+                bytes[j] = (byte)(state[i] >> 8);
+                j++;
+                bytes[j] = (byte)(state[i] >> 16);
+                j++;
+                bytes[j] = (byte)(state[i] >> 24);
+                j++;
             }
         }
     }

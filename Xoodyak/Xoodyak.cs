@@ -168,16 +168,16 @@ namespace Xoodyak
             phase = Phase.Down;
             for (int i = 0; i < count; i++)
             {
-                xoodoo.XOR(i, block[i]);
+                xoodoo[i] ^= block[i];
             }
-            xoodoo.XOR(count, 0x01);
+            xoodoo[count] ^= 0x01;
             if (mode == Mode.Hash)
             {
-                xoodoo.XOR(47, (byte)((byte)flag & 0x01));
+                xoodoo[47] ^= (byte)((byte)flag & 0x01);
             }
             else
             {
-                xoodoo.XOR(47, (byte)flag);
+                xoodoo[47] ^= (byte)flag;
             }
         }
 
@@ -186,7 +186,7 @@ namespace Xoodyak
             phase = Phase.Up;
             if (mode != Mode.Hash)
             {
-                xoodoo.XOR(47, (byte)flag);
+                xoodoo[47] ^= (byte)flag;
             }
             xoodoo.Permute();
             for (long i = 0; i < count; i++)
